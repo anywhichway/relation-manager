@@ -51,4 +51,6 @@ until the most recent v8 engine is added to Node.js.
 
 # Updates (reverse chronological order)
 
+2016-03-02 v0.0.4 Added unit tests, more class validation, usage documentation.
+
 2016-03-01 v0.0.3 Initial public release.

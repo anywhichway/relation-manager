@@ -1,6 +1,6 @@
 {
   "name": "relation-manager",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Automatic relation management for JavaScript objects",
   "main": "index.js",
   "client": "./browser/relation-manager.js",

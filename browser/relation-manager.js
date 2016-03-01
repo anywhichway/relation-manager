@@ -138,16 +138,25 @@
 			key = (subjectSpec.relation ? subjectSpec.relation : subjectSpec.property);
 		// if there is only one spec it must be symmetric 
 		if(me.specs.length===1) {
+			if(!(subject instanceof subjectSpec.class)) {
+				throw new TypeError(key + " is not instanceof " + subjectSpec.class.name);
+			}
 			// we must store values in an array
 			me[key] = [subject];
 			objects.forEach(function(object) {
 				me[key].push(object);
 			});
 		} else {
+			if(!(subject instanceof subjectSpec.class)) {
+				throw new TypeError(key + " is not instanceof " + subjectSpec.class.name);
+			}
 			// store each part of the relation in a different key
 			me[key] = subject;
 			me.specs.slice(1).forEach(function(spec,i) {
 				var key = (spec.relation ? spec.relation : spec.property);
+				if(!(objects[i] instanceof spec.class)) {
+					throw new TypeError(key + " is not instanceof " + spec.class.name);
+				}
 				me[key] = objects[i];
 			});
 		}
