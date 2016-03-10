@@ -67,6 +67,52 @@
 		return false;
 	}
 
+	function Relation() {
+		var me = this, objects = [].slice.call(arguments,1), subject = arguments[0],
+			subjectSpec = me.specs[0], added = false,
+			key = (subjectSpec.relation ? subjectSpec.relation : subjectSpec.property);
+		// if there is only one spec it must be symmetric 
+		if(me.specs.length===1) {
+			if(!(subject instanceof subjectSpec.class)) {
+				throw new TypeError(key + " is not instanceof " + subjectSpec.class.name);
+			}
+			// we must store values in an array
+			me[key] = [subject];
+			objects.forEach(function(object) {
+				me[key].push(object);
+			});
+		} else {
+			if(!(subject instanceof subjectSpec.class)) {
+				throw new TypeError(key + " is not instanceof " + subjectSpec.class.name);
+			}
+			// store each part of the relation in a different key
+			me[key] = subject;
+			me.specs.slice(1).forEach(function(spec,i) {
+				var key = (spec.relation ? spec.relation : spec.property);
+				if(!(objects[i] instanceof spec.class)) {
+					throw new TypeError(key + " is not instanceof " + spec.class.name);
+				}
+				me[key] = objects[i];
+			});
+		}
+		// add the other side of the relations to the object
+		if(subjectSpec.cardinality>1) {
+			objects.forEach(function(object) {
+				added = object[subjectSpec.property].add(subject);
+			});
+		} else {
+			objects.forEach(function(object) {
+				if(object[subjectSpec.property]!==subject) {
+					added = true;
+					object[subjectSpec.property] = subject;
+				}
+			});
+		}
+		// only save the relation instance if we actually had to add data, avoids duplicating symmetric relations
+		if(added) {
+			this.instances.push(this);
+		}
+	}
 	function addRelations(instance,specs) {
 		function enhance(instance,subjectSpec,spec) {
 			// does class checking and sets reflecting relation for cardinality=1, used as second part of if ... else below
@@ -129,53 +175,6 @@
 			scope[sname].instances = scope[sname].prototype.instances;
 		}
 		return cons;
-	}
-
-	function Relation() {
-		var me = this, objects = [].slice.call(arguments,1), subject = arguments[0],
-			subjectSpec = me.specs[0], added = false,
-			key = (subjectSpec.relation ? subjectSpec.relation : subjectSpec.property);
-		// if there is only one spec it must be symmetric 
-		if(me.specs.length===1) {
-			if(!(subject instanceof subjectSpec.class)) {
-				throw new TypeError(key + " is not instanceof " + subjectSpec.class.name);
-			}
-			// we must store values in an array
-			me[key] = [subject];
-			objects.forEach(function(object) {
-				me[key].push(object);
-			});
-		} else {
-			if(!(subject instanceof subjectSpec.class)) {
-				throw new TypeError(key + " is not instanceof " + subjectSpec.class.name);
-			}
-			// store each part of the relation in a different key
-			me[key] = subject;
-			me.specs.slice(1).forEach(function(spec,i) {
-				var key = (spec.relation ? spec.relation : spec.property);
-				if(!(objects[i] instanceof spec.class)) {
-					throw new TypeError(key + " is not instanceof " + spec.class.name);
-				}
-				me[key] = objects[i];
-			});
-		}
-		// add the other side of the relations to the object
-		if(subjectSpec.cardinality>1) {
-			objects.forEach(function(object) {
-				added = object[subjectSpec.property].add(subject);
-			});
-		} else {
-			objects.forEach(function(object) {
-				if(object[subjectSpec.property]!==subject) {
-					added = true;
-					object[subjectSpec.property] = subject;
-				}
-			});
-		}
-		// only save the relation instance if we actually had to add data, avoids duplicating symmetric relations
-		if(added) {
-			this.instances.push(this);
-		}
 	}
 	Relation.define = function(scope) {
 		var specs = [].slice.call(arguments,1), subjectSpec = specs[0],  name="", head,
